@@ -128,7 +128,7 @@ void ofApp::update(){
             ofPushMatrix();
             ofTranslate((i+0.5)*gridSize, (j+0.5)*gridSize);
             
-            ofRotateZ(anchor.angle(d) + time*100);
+            ofRotateZ(anchor.angle(d) + time*20);
             
             //            ofSetColor(255,0,0);
             //            moons[idx].draw(-.5*gridSize, -.5*gridSize, gridSize, gridSize);

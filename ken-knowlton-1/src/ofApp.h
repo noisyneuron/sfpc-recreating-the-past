@@ -21,7 +21,7 @@ class ofApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
     
-    ofImage elephant;
+    ofImage img;
     ofImage moons [15];
     ofFbo fbo;
     

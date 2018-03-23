@@ -2,10 +2,10 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-    elephant.load("ken.jpg");
-    cout << elephant.getWidth() << " " << elephant.getHeight() << endl;
+    img.load("ken.jpg");
+    cout << img.getWidth() << " " << img.getHeight() << endl;
     
-    fbo.allocate(elephant.getWidth(), elephant.getHeight(), GL_RGBA);
+    fbo.allocate(img.getWidth(), img.getHeight(), GL_RGBA);
     
     gridSize = 32;
     
@@ -24,26 +24,20 @@ void ofApp::setup(){
     
     ofSetColor(255);
     
-    for(int i=0; i<elephant.getWidth(); i+=gridSize) {
-        for(int j=0; j<elephant.getHeight(); j+=gridSize) {
+    for(int i=0; i<img.getWidth(); i+=gridSize) {
+        for(int j=0; j<img.getHeight(); j+=gridSize) {
 
-            float brightnessLeft = 0;
-            float brightnessRight = 0;
+            float brightness = 0;
             
-            for(int m=0; m<gridSize/2; m++) {
+            for(int m=0; m<gridSize; m++) {
                 for(int n=0; n<gridSize; n++) {
-                    brightnessLeft += elephant.getColor(m+i, n+j).getBrightness();
+                    brightness += img.getColor(m+i, n+j).getBrightness();
                 }
             }
             
-            for(int m=gridSize/2; m<gridSize; m++) {
-                for(int n=0; n<gridSize; n++) {
-                    brightnessRight += elephant.getColor(m+i, n+j).getBrightness();
-                }
-            }
+            brightness = brightness / (gridSize * gridSize);
             
-            float totalBrightness = (brightnessLeft+brightnessRight) / (gridSize*gridSize);
-            int idx = (int)ofMap(totalBrightness, 0, 255, 0, 15);
+            int idx = (int)ofMap(brightness, 0, 255, 0, 15);
             moons[idx].draw(i, j, gridSize, gridSize);
         }
     }
