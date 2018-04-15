@@ -2,30 +2,39 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-    img.load("paper-3.jpg");
+    ofDisableAntiAliasing();
+    img.load("ken-blur.jpg");
     iw = img.getWidth();
     ih = img.getHeight();
     
-//    cout << img.getWidth() << " " << img.getHeight() << endl;
+    gridSize = 64;
+    fbo.allocate(gridSize, gridSize, GL_RGBA);
     
-    fbo.allocate(iw, ih, GL_RGBA);
+    // draw mesh around center of grid unit
+    mesh.addVertex(ofPoint(-1*gridSize, -1*gridSize));
+    mesh.addColor(ofFloatColor(0., 0., 0.));
     
-    gridSize = 16;
+    mesh.addVertex(ofPoint(1*gridSize,-1*gridSize));
+    mesh.addColor(ofFloatColor(0., 0., 0.));
     
-    for(int i=0; i<15; i++) {
-        if(i==0 || i == 14) {
-            moons[i].load(to_string(i) + ".jpg");
-        } else {
-            moons[i].load(to_string(i) + "l.jpg");
-        }
-    }
+    mesh.addVertex(ofPoint(1*gridSize, 1*gridSize));
+    mesh.addColor(ofFloatColor(1., 1., 1.));
     
+    mesh.addVertex(ofPoint(-1*gridSize,1*gridSize));
+    mesh.addColor(ofFloatColor(1., 1., 1.));
+    
+    mesh.addIndex(0);
+    mesh.addIndex(1);
+    mesh.addIndex(2);
+
+    mesh.addIndex(0);
+    mesh.addIndex(2);
+    mesh.addIndex(3);
+    
+    updateFbo(ofVec2f(0,0));
     
     analyseImage();
     chunkImage();
-    
-
-
 }
 
 //--------------------------------------------------------------
@@ -99,65 +108,57 @@ void ofApp::chunkImage(){
 
 
 //--------------------------------------------------------------
-void ofApp::update(){
-    float time = ofGetElapsedTimef();
+void ofApp::updateFbo(ofVec2f dir){
     
+    ofVec2f anchor = ofVec2f(-1,0);
     fbo.begin();
     ofClear(0,0,0,255);
-    ofSetColor(255);
-    
-    
-    int stepX = iw/gridSize;
-    int stepY = ih/gridSize;
-    
-    for(int i=0; i<stepX; i++) {
-        for(int j=0; j<stepY; j++) {
-            
-            float b = brightsChunked[i*stepX + j];
-            ofVec2f d = gradientsChunked[i*stepY + j];
-            d.normalize();
-            d *= gridSize/2;
-            
-            int idx = (int)ofMap(b, 0, 255, 0, 14);
-            
-            
-            ofVec2f anchor = ofVec2f(-1,0);
-            
-            //            ofSetColor(b);
-            
-            ofPushMatrix();
-            ofTranslate((i+0.5)*gridSize, (j+0.5)*gridSize);
-            
-            ofRotateZ(anchor.angle(d));
-            
-            //            ofSetColor(255,0,0);
-            //            moons[idx].draw(-.5*gridSize, -.5*gridSize, gridSize, gridSize);
-            
-            ofPath line;
-            float r = .5*gridSize;
-            r = ofMap(b,0,255,.1*gridSize, .5*gridSize);
-            line.moveTo(r*ofVec2f(cos(0), sin(0)));
-            line.lineTo(r*ofVec2f(cos(TWO_PI/3), sin(TWO_PI/3)));
-            line.lineTo(r*ofVec2f(cos(2*TWO_PI/3), sin(2*TWO_PI/3)));
-            line.close();
-            line.setFillColor(ofColor(255,255,255,255));
-            line.draw();
-            
-            
-            //            ofSetColor(255,0,0);
-            //            ofRotateZ(-anchor.angle(d));
-            //            ofDrawLine(0,0,d.x,d.y);
-            
-            ofPopMatrix();
-        }
-    }
-    
+    ofPushMatrix();
+    ofTranslate(gridSize*.5, gridSize*0.5);
+    ofRotateZ(anchor.angle(dir));
+    mesh.draw();
+    ofPopMatrix();
     fbo.end();
+}
+
+
+//--------------------------------------------------------------
+void ofApp::update(){
+
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
-    fbo.draw(0,0);
+    ofBackground(0);
+    int stepX = iw/gridSize;
+    int stepY = ih/gridSize;
+
+    for(int i=0; i<stepX; i++) {
+        for(int j=0; j<stepY; j++) {
+
+            float b = brightsChunked[i*stepX + j];
+            ofVec2f d = gradientsChunked[i*stepY + j];
+            d.normalize();
+            d *= gridSize/2;
+
+            int idx = (int)ofMap(b, 0, 255, 0, 14);
+
+
+            ofVec2f anchor = ofVec2f(-1,0);
+
+
+            ofPushMatrix();
+
+            updateFbo(d);
+            fbo.draw(i*gridSize, j*gridSize, gridSize, gridSize);
+
+            //            ofSetColor(255,0,0);
+            //            ofRotateZ(-anchor.angle(d));
+            //            ofDrawLine(0,0,d.x,d.y);
+
+            ofPopMatrix();
+        }
+    }
 }
 
 //--------------------------------------------------------------
